@@ -108,15 +108,19 @@ export default function Dashboard() {
     setShowError(true);
   };
 
-  const hostServers = filteredServers.filter(server => server.host === null);
+  const hostServers = filteredServers
+      .filter(server => server.host === null)
+      .sort((a, b) => a.name.localeCompare(b.name));
+
   const vmsByHost = filteredServers.reduce((acc, server) => {
     if (server.host !== null) {
       if (!acc[server.host]) acc[server.host] = [];
       acc[server.host].push(server);
+      acc[server.host].sort((a, b) => a.name.localeCompare(b.name));
     }
     return acc;
   }, {} as Record<number, Server[]>);
-  
+
   const validateForm = () => {
     if (type === 0) {
       if (!serverName.trim() || !serverIP.trim()) {
