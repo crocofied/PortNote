@@ -111,7 +111,6 @@ export default function Dashboard() {
     }
     return true;
   };
-  
 
   const handleSubmit = async () => {
     if (!validateForm()) return;
@@ -204,7 +203,6 @@ export default function Dashboard() {
     setPortPort(null);
   };
 
-// Neue useMemo-Deklaration für verwendete Ports
 const usedPorts = useMemo(() => {
   const ports = new Set<number>();
   servers.forEach(server => {
@@ -213,12 +211,10 @@ const usedPorts = useMemo(() => {
   return ports;
 }, [servers]);
 
-// Überarbeitete generateRandomPort Funktion
 const generateRandomPort = () => {
   let port;
   let attempts = 0;
   
-  // Generiere Ports bis ein freier gefunden wird (max 1000 Versuche)
   do {
     port = Math.floor(Math.random() * (65535 - 1024) + 1024);
     attempts++;
@@ -533,25 +529,25 @@ const generateRandomPort = () => {
                             />
                           </label>
                           {editItem.host !== null && (
-  <select
-    className="select select-bordered w-full"
-    value={editItem.host}
-    onChange={(e) => setEditItem({
-      ...editItem,
-      host: Number(e.target.value)
-    })}
-    required
-  >
-    <option disabled value="">Select host</option>
-    {hostServers
-      .filter(server => server.id !== editItem.id) // Exclude current server
-      .map(server => (
-        <option key={server.id} value={server.id}>
-          {server.name}
-        </option>
-      ))}
-  </select>
-)}
+                            <select
+                              className="select select-bordered w-full"
+                              value={editItem.host}
+                              onChange={(e) => setEditItem({
+                                ...editItem,
+                                host: Number(e.target.value)
+                              })}
+                              required
+                            >
+                              <option disabled value="">Select host</option>
+                              {hostServers
+                                .filter(server => server.id !== editItem.id) // Exclude current server
+                                .map(server => (
+                                  <option key={server.id} value={server.id}>
+                                    {server.name}
+                                  </option>
+                                ))}
+                            </select>
+                          )}
                         </div>
                       </div>
                     ) : (
