@@ -28,6 +28,16 @@ interface Port {
   port: number;
 }
 
+const compareIp = (a: string, b: string) => {
+  const pa = a.split('.').map(n => parseInt(n, 10));
+  const pb = b.split('.').map(n => parseInt(n, 10));
+  for (let i = 0; i < 4; i++) {
+    const diff = (pa[i] || 0) - (pb[i] || 0);
+    if (diff !== 0) return diff;
+  }
+  return 0;
+};
+
 export default function Dashboard() {
   const [servers, setServers] = useState<Server[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
@@ -136,23 +146,18 @@ export default function Dashboard() {
 
   // Group & sort VMs under hosts
   const vmsByHost = useMemo(() => {
-    const acc: Record<number, Server[]> = {};
-    filteredServers.forEach(server => {
-      if (server.host !== null) {
-        if (!acc[server.host]) acc[server.host] = [];
-        acc[server.host].push(server);
+    const map: Record<number, Server[]> = {};
+    filteredServers.forEach(s => {
+      if (s.host !== null) {
+        map[s.host] = map[s.host] || [];
+        map[s.host].push(s);
       }
     });
-    // apply sort
-    Object.values(acc).forEach(arr => {
-      arr.sort((a, b) => {
-        if (sortType === SortType.IP) {
-          return a.ip.localeCompare(b.ip, undefined, { numeric: true });
-        }
-        return a.name.localeCompare(b.name);
-      });
-    });
-    return acc;
+    Object.values(map).forEach(arr => arr.sort((a, b) => {
+      if (sortType === SortType.IP) return compareIp(a.ip, b.ip);
+      return a.name.localeCompare(b.name);
+    }));
+    return map;
   }, [filteredServers, sortType]);
 
   const validateForm = () => {
@@ -166,7 +171,7 @@ export default function Dashboard() {
         handleError("Server and port are required");
         return false;
       }
-      
+
       if (usedPorts.has(portPort)) {
         handleError("Port is already in use");
         return false;
@@ -177,7 +182,7 @@ export default function Dashboard() {
 
   const handleSubmit = async () => {
     if (!validateForm()) return;
-    
+
     try {
       const payload = type === 0 ? {
         type,
