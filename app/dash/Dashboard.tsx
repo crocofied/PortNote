@@ -673,7 +673,7 @@ const generateRandomPort = () => {
                 <div className="text-sm opacity-75">{server.ip}</div>
                   {expanded.has(server.id) && (
                       sortedPorts(server.ports).map(port => (
-                        <div key={port.id} className="ml-4 mt-2 flex items-center gap-2">
+                        <div key={port.id} className="ml-4 mt-2 flex items-center gap-2 hover:bg-base-300 rounded-lg">
                           <div className="badge badge-neutral w-16">{port.port}</div>
                           <span className="ml-2 text-sm flex-1">{port.note}</span>
                           <button
@@ -734,7 +734,7 @@ const generateRandomPort = () => {
                     <div className="text-sm opacity-75">{vm.ip}</div>
                         {expanded.has(vm.id) && (
                             sortedPorts(vm.ports).map(port => (
-                              <div key={port.id} className="ml-4 mt-2 flex items-center gap-2">
+                              <div key={port.id} className="ml-4 mt-2 flex items-center hover:bg-base-300 gap-2">
                                 <div className="badge badge-neutral w-16">{port.port}</div>
                                 <span className="ml-2 text-sm flex-1">{port.note}</span>
                                 <button
