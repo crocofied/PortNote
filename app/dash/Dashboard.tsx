@@ -1,11 +1,12 @@
 "use client";
 import Navbar from "@/components/Navbar";
 import ErrorToast from "@/components/Error";
-import { Edit, Plus, Trash, Dice5, Copy, ScanSearch} from "lucide-react";
+import { Edit, Plus, Trash, Dice5, Copy, ScanSearch, ChevronDown} from "lucide-react";
 import { useEffect, useState, useMemo } from "react";
 import axios from "axios";
 import Fuse from "fuse.js";
 import Footer from "@/components/Footer"
+import Cookies from "js-cookie";
 
 interface Server {
   id: number;
@@ -27,7 +28,14 @@ export default function Dashboard() {
   const [searchQuery, setSearchQuery] = useState("");
   const [showError, setShowError] = useState(false);
   const [error, setError] = useState("");
-  
+
+  const [expanded, setExpanded] = useState<Set<number>>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = Cookies.get('expanded');
+      return new Set(saved ? JSON.parse(saved) : []);
+    }
+    return new Set();
+  });
   // Form States
   const [isVm, setIsVm] = useState(false);
   const [type, setType] = useState(0);
@@ -44,6 +52,23 @@ export default function Dashboard() {
 
   const [isScanning, setIsScanning] = useState(false);
   const [showRefreshMessage, setShowRefreshMessage] = useState(false);
+
+
+  useEffect(() => {
+    Cookies.set('expanded', JSON.stringify(Array.from(expanded)), {
+      expires: 365,
+      sameSite: 'Lax',
+      secure: process.env.NODE_ENV === 'production',
+    });
+  }, [expanded]);
+
+  const toggleExpanded = (id: number) => {
+    setExpanded(prev => {
+      const newSet = new Set(prev);
+      newSet.has(id) ? newSet.delete(id) : newSet.add(id);
+      return newSet;
+    });
+  };
 
   const fuse = useMemo(() => new Fuse(servers, {
     keys: ['name', 'ip', 'ports.note', 'ports.port'],
@@ -610,8 +635,16 @@ const generateRandomPort = () => {
           {/* Server List */}
           <div className="mt-8 space-y-4">
             {hostServers.map(server => (
-              <div key={server.id} className="bg-base-200 p-4 rounded-lg">
-                <div className="flex items-center gap-2">
+                <div key={server.id} className="bg-base-200 p-4 rounded-lg">
+                  <div className="flex items-center gap-2">
+                    <button
+                        className="btn btn-ghost btn-xs p-1"
+                        onClick={() => toggleExpanded(server.id)}
+                    >
+                      <ChevronDown className={`h-4 w-4 transition-transform ${
+                          expanded.has(server.id) ? 'rotate-180' : ''
+                      }`} />
+                    </button>
                   <div className="flex items-center gap-2 flex-1">
                     <div className="font-bold text-lg">{server.name}</div>
                     <button
@@ -638,32 +671,41 @@ const generateRandomPort = () => {
                   </button>
                 </div>
                 <div className="text-sm opacity-75">{server.ip}</div>
-                
-                {sortedPorts(server.ports).map(port => (
-                  <div key={port.id} className="ml-4 mt-2 flex items-center gap-2">
-                    <div className="badge badge-neutral w-16">{port.port}</div>
-                    <span className="ml-2 text-sm flex-1">{port.note}</span>
-                    <button 
-                      className="btn btn-xs btn-ghost"
-                      onClick={() => {
-                        setEditItem(port);
-                        (document.getElementById('edit') as HTMLDialogElement)?.showModal();
-                      }}
-                    >
-                      <Edit size={14} />
-                    </button>
-                    <button 
-                      className="btn btn-xs btn-ghost text-error"
-                      onClick={() => handleDelete(2, port.id)}
-                    >
-                      <Trash size={14} />
-                    </button>
-                  </div>
-                ))}
+                  {expanded.has(server.id) && (
+                      sortedPorts(server.ports).map(port => (
+                        <div key={port.id} className="ml-4 mt-2 flex items-center gap-2">
+                          <div className="badge badge-neutral w-16">{port.port}</div>
+                          <span className="ml-2 text-sm flex-1">{port.note}</span>
+                          <button
+                            className="btn btn-xs btn-ghost"
+                            onClick={() => {
+                              setEditItem(port);
+                              (document.getElementById('edit') as HTMLDialogElement)?.showModal();
+                            }}
+                          >
+                            <Edit size={14} />
+                          </button>
+                          <button
+                            className="btn btn-xs btn-ghost text-error"
+                            onClick={() => handleDelete(2, port.id)}
+                          >
+                            <Trash size={14} />
+                          </button>
+                        </div>
+                      ))
+                    )}
 
-                {vmsByHost[server.id]?.map(vm => (
-                  <div key={vm.id} className="ml-4 mt-4 border-l-2 pl-4">
-                    <div className="flex items-center gap-2">
+                  {vmsByHost[server.id]?.map(vm => (
+                      <div key={vm.id} className="ml-4 mt-4 border-l-2 pl-4">
+                        <div className="flex items-center gap-2">
+                          <button
+                              className="btn btn-ghost btn-xs p-1"
+                              onClick={() => toggleExpanded(vm.id)}
+                          >
+                            <ChevronDown className={`h-4 w-4 transition-transform ${
+                                expanded.has(vm.id) ? 'rotate-180' : ''
+                            }`} />
+                          </button>
                       <div className="font-medium">🖥️ {vm.name}</div>
                       <button
                     className="btn btn-xs btn-ghost text-primary"
@@ -690,27 +732,29 @@ const generateRandomPort = () => {
                       </div>
                     </div>
                     <div className="text-sm opacity-75">{vm.ip}</div>
-                    {sortedPorts(vm.ports).map(port => (
-                      <div key={port.id} className="ml-4 mt-2 flex items-center gap-2">
-                        <div className="badge badge-neutral w-16">{port.port}</div>
-                        <span className="ml-2 text-sm flex-1">{port.note}</span>
-                        <button 
-                          className="btn btn-xs btn-ghost"
-                          onClick={() => {
-                            setEditItem(port);
-                            (document.getElementById('edit') as HTMLDialogElement)?.showModal();
-                          }}
-                        >
-                          <Edit size={14} />
-                        </button>
-                        <button 
-                          className="btn btn-xs btn-ghost text-error"
-                          onClick={() => handleDelete(2, port.id)}
-                        >
-                          <Trash size={14} />
-                        </button>
-                      </div>
-                    ))}
+                        {expanded.has(vm.id) && (
+                            sortedPorts(vm.ports).map(port => (
+                              <div key={port.id} className="ml-4 mt-2 flex items-center gap-2">
+                                <div className="badge badge-neutral w-16">{port.port}</div>
+                                <span className="ml-2 text-sm flex-1">{port.note}</span>
+                                <button
+                                  className="btn btn-xs btn-ghost"
+                                  onClick={() => {
+                                    setEditItem(port);
+                                    (document.getElementById('edit') as HTMLDialogElement)?.showModal();
+                                  }}
+                                >
+                                  <Edit size={14} />
+                                </button>
+                                <button
+                                  className="btn btn-xs btn-ghost text-error"
+                                  onClick={() => handleDelete(2, port.id)}
+                                >
+                                  <Trash size={14} />
+                                </button>
+                              </div>
+                          ))
+                        )}
                   </div>
                 ))}
               </div>
