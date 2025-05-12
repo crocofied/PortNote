@@ -8,6 +8,11 @@ import Fuse from "fuse.js";
 import Footer from "@/components/Footer"
 import Cookies from "js-cookie";
 
+enum SortType {
+  Alphabet = 'alphabet',
+  IP = 'ip'
+}
+
 interface Server {
   id: number;
   name: string;
@@ -28,6 +33,13 @@ export default function Dashboard() {
   const [searchQuery, setSearchQuery] = useState("");
   const [showError, setShowError] = useState(false);
   const [error, setError] = useState("");
+
+  const [sortType, setSortType] = useState<SortType>(() => {
+    if (typeof window !== 'undefined') {
+      return (Cookies.get('serverSort') as SortType) || SortType.Alphabet;
+    }
+    return SortType.Alphabet;
+  });
 
   const [expanded, setExpanded] = useState<Set<number>>(() => {
     if (typeof window !== 'undefined') {
@@ -61,6 +73,10 @@ export default function Dashboard() {
       secure: process.env.NODE_ENV === 'production',
     });
   }, [expanded]);
+
+  useEffect(() => {
+    Cookies.set('serverSort', sortType, { expires: 365, sameSite: 'Lax', secure: process.env.NODE_ENV === 'production' });
+  }, [sortType]);
 
   const toggleExpanded = (id: number) => {
     setExpanded(prev => {
@@ -108,18 +124,36 @@ export default function Dashboard() {
     setShowError(true);
   };
 
-  const hostServers = filteredServers
-      .filter(server => server.host === null)
-      .sort((a, b) => a.name.localeCompare(b.name));
+  const hostServers = useMemo(() => {
+    const list = filteredServers.filter(s => s.host === null);
+    return list.sort((a, b) => {
+      if (sortType === SortType.IP) {
+        return a.ip.localeCompare(b.ip, undefined, { numeric: true });
+      }
+      return a.name.localeCompare(b.name);
+    });
+  }, [filteredServers, sortType]);
 
-  const vmsByHost = filteredServers.reduce((acc, server) => {
-    if (server.host !== null) {
-      if (!acc[server.host]) acc[server.host] = [];
-      acc[server.host].push(server);
-      acc[server.host].sort((a, b) => a.name.localeCompare(b.name));
-    }
+  // Group & sort VMs under hosts
+  const vmsByHost = useMemo(() => {
+    const acc: Record<number, Server[]> = {};
+    filteredServers.forEach(server => {
+      if (server.host !== null) {
+        if (!acc[server.host]) acc[server.host] = [];
+        acc[server.host].push(server);
+      }
+    });
+    // apply sort
+    Object.values(acc).forEach(arr => {
+      arr.sort((a, b) => {
+        if (sortType === SortType.IP) {
+          return a.ip.localeCompare(b.ip, undefined, { numeric: true });
+        }
+        return a.name.localeCompare(b.name);
+      });
+    });
     return acc;
-  }, {} as Record<number, Server[]>);
+  }, [filteredServers, sortType]);
 
   const validateForm = () => {
     if (type === 0) {
@@ -329,41 +363,49 @@ const generateRandomPort = () => {
       <div className="grid grid-cols-12 pt-12">
         <div className="col-start-3 col-end-11">
           <div className="w-full flex gap-2">
+            <select
+                value={sortType}
+                onChange={e => setSortType(e.target.value as SortType)}
+                className="select select-bordered w-48"
+            >
+              <option value={SortType.Alphabet}>Sort: Alphabetical</option>
+              <option value={SortType.IP}>Sort: IP Address</option>
+            </select>
             <label className="input w-full ">
               <svg className="h-[1em] opacity-50" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
                 <g
-                  strokeLinejoin="round"
-                  strokeLinecap="round"
-                  strokeWidth="2.5"
-                  fill="none"
-                  stroke="currentColor"
+                    strokeLinejoin="round"
+                    strokeLinecap="round"
+                    strokeWidth="2.5"
+                    fill="none"
+                    stroke="currentColor"
                 >
                   <circle cx="11" cy="11" r="8"></circle>
                   <path d="m21 21-4.3-4.3"></path>
                 </g>
               </svg>
-              <input 
-                type="text" 
-                placeholder="Search..." 
-                className="input input-lg outline-none focus:outline-none focus:ring-0 border-0 focus:border-0"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+              <input
+                  type="text"
+                  placeholder="Search..."
+                  className="input input-lg outline-none focus:outline-none focus:ring-0 border-0 focus:border-0"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
               />
             </label>
 
-            <button 
-              className="btn btn-square"
-              onClick={generateRandomPort}
-              title="Generate random port"
+            <button
+                className="btn btn-square"
+                onClick={generateRandomPort}
+                title="Generate random port"
             >
               <Dice5/>
             </button>
             {showRandomModal && randomPort !== null && (
                 <dialog open className="modal">
-                    <div className="modal-box max-w-xs space-y-4">
+                  <div className="modal-box max-w-xs space-y-4">
                     <div className="text-center">
-                        <h3 className="font-bold text-xl mb-1">Random Port Generator</h3>
-                        <p className="text-sm opacity-75">Your allocated port number</p>
+                      <h3 className="font-bold text-xl mb-1">Random Port Generator</h3>
+                      <p className="text-sm opacity-75">Your allocated port number</p>
                     </div>
 
                     <div className="bg-base-200 rounded-box p-4 w-full text-center shadow-inner">
@@ -373,133 +415,135 @@ const generateRandomPort = () => {
                     </div>
 
                     <div className="flex flex-col w-full gap-2">
-                        <button 
-                        className="btn btn-block gap-2"
-                        onClick={copyToClipboard}
-                        title="Copy port"
-                        >
-                        <Copy size={18} className="mr-1" />
+                      <button
+                          className="btn btn-block gap-2"
+                          onClick={copyToClipboard}
+                          title="Copy port"
+                      >
+                        <Copy size={18} className="mr-1"/>
                         Copy Port
-                        </button>
-                        
-                        <button 
-                        className="btn btn-ghost btn-sm btn-circle absolute top-2 right-2"
-                        onClick={() => setShowRandomModal(false)}
-                        title="Close"
-                        >
-                        ✕
-                        </button>
-                    </div>
-                    </div>
-                </dialog>
-                )}
+                      </button>
 
-            <button className="btn btn-square" onClick={() => (document.getElementById('add') as HTMLDialogElement)?.showModal()}>
+                      <button
+                          className="btn btn-ghost btn-sm btn-circle absolute top-2 right-2"
+                          onClick={() => setShowRandomModal(false)}
+                          title="Close"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  </div>
+                </dialog>
+            )}
+
+            <button className="btn btn-square"
+                    onClick={() => (document.getElementById('add') as HTMLDialogElement)?.showModal()}>
               <Plus/>
             </button>
-            
+
             {/* Add Dialog */}
             <dialog id="add" className="modal">
               <div className="modal-box">
                 <h3 className="font-bold text-lg pb-2">Create...</h3>
                 <div className="tabs tabs-box">
-                  <input 
-                    type="radio" 
-                    name="type" 
-                    className="tab" 
-                    aria-label="Server" 
-                    checked={type === 0}
-                    onChange={() => setType(0)}
+                  <input
+                      type="radio"
+                      name="type"
+                      className="tab"
+                      aria-label="Server"
+                      checked={type === 0}
+                      onChange={() => setType(0)}
                   />
                   <div className="tab-content bg-base-100 border-base-300 p-6 space-y-2">
-                    <input 
-                      type="text" 
-                      placeholder="Name" 
-                      className="input w-full"
-                      value={serverName}
-                      onChange={(e) => setServerName(e.target.value)}
-                      required
+                    <input
+                        type="text"
+                        placeholder="Name"
+                        className="input w-full"
+                        value={serverName}
+                        onChange={(e) => setServerName(e.target.value)}
+                        required
                     />
-                    <input 
-                      type="text" 
-                      placeholder="IP" 
-                      className="input w-full"
-                      value={serverIP}
-                      onChange={(e) => setServerIP(e.target.value)}
-                      required
+                    <input
+                        type="text"
+                        placeholder="IP"
+                        className="input w-full"
+                        value={serverIP}
+                        onChange={(e) => setServerIP(e.target.value)}
+                        required
                     />
                     <div className="flex gap-2 items-center">
                       <label className="label cursor-pointer">
                         <span className="label-text">Is VM?</span>
-                        <input 
-                          type="checkbox" 
-                          className="checkbox" 
-                          checked={isVm}
-                          onChange={(e) => setIsVm(e.target.checked)}
+                        <input
+                            type="checkbox"
+                            className="checkbox"
+                            checked={isVm}
+                            onChange={(e) => setIsVm(e.target.checked)}
                         />
                       </label>
                       {isVm && (
-                        <select 
-                          className="select select-bordered w-full"
-                          value={serverHost || ""}
-                          onChange={(e) => setServerHost(Number(e.target.value))}
-                          required
-                        >
-                          <option disabled value="">Select host</option>
-                          {hostServers.map(server => (
-                            <option key={server.id} value={server.id}>
-                              {server.name}
-                            </option>
-                          ))}
-                        </select>
+                          <select
+                              className="select select-bordered w-full"
+                              value={serverHost || ""}
+                              onChange={(e) => setServerHost(Number(e.target.value))}
+                              required
+                          >
+                            <option disabled value="">Select host</option>
+                            {hostServers.map(server => (
+                                <option key={server.id} value={server.id}>
+                                  {server.name}
+                                </option>
+                            ))}
+                          </select>
                       )}
                     </div>
                   </div>
 
-                  <input 
-                    type="radio" 
-                    name="type" 
-                    className="tab" 
-                    aria-label="Port" 
-                    checked={type === 1}
-                    onChange={() => setType(1)}
+                  <input
+                      type="radio"
+                      name="type"
+                      className="tab"
+                      aria-label="Port"
+                      checked={type === 1}
+                      onChange={() => setType(1)}
                   />
                   <div className="tab-content bg-base-100 border-base-300 p-6 space-y-2">
-                    <select 
-                      className="select w-full"
-                      value={portServer || ""}
-                      onChange={(e) => setPortServer(Number(e.target.value))}
-                      required
+                    <select
+                        className="select w-full"
+                        value={portServer || ""}
+                        onChange={(e) => setPortServer(Number(e.target.value))}
+                        required
                     >
                       <option disabled value="">Select server</option>
                       {servers.map(server => (
-                        <option key={server.id} value={server.id}>
-                          {server.name}
-                        </option>
+                          <option key={server.id} value={server.id}>
+                            {server.name}
+                          </option>
                       ))}
                     </select>
-                    <input 
-                      type="text" 
-                      placeholder="Note" 
-                      className="input w-full"
-                      value={portNote}
-                      onChange={(e) => setPortNote(e.target.value)}
+                    <input
+                        type="text"
+                        placeholder="Note"
+                        className="input w-full"
+                        value={portNote}
+                        onChange={(e) => setPortNote(e.target.value)}
                     />
-                    <input 
-                      type="number" 
-                      placeholder="Port" 
-                      className="input w-full"
-                      value={portPort || ""}
-                      onChange={(e) => setPortPort(Number(e.target.value))}
-                      min="0"
-                      max="65535"
-                      required
+                    <input
+                        type="number"
+                        placeholder="Port"
+                        className="input w-full"
+                        value={portPort || ""}
+                        onChange={(e) => setPortPort(Number(e.target.value))}
+                        min="0"
+                        max="65535"
+                        required
                     />
                   </div>
                 </div>
                 <div className="modal-action mt-auto pt-2">
                   <button className="btn" onClick={handleSubmit}>Add</button>
-                  <button className="btn btn-ghost" onClick={() => (document.getElementById('add') as HTMLDialogElement)?.close()}>
+                  <button className="btn btn-ghost"
+                          onClick={() => (document.getElementById('add') as HTMLDialogElement)?.close()}>
                     Cancel
                   </button>
                 </div>
@@ -511,126 +555,126 @@ const generateRandomPort = () => {
               <div className="modal-box">
                 <h3 className="font-bold text-lg pb-2">{editItem && "ports" in editItem ? "Edit Server" : "Edit Port"}</h3>
                 {editItem && (
-                  <div className="space-y-4">
-                    {"ports" in editItem ? (
-                      <div className="space-y-2">
-                        <input
-                          type="text"
-                          placeholder="Name"
-                          className="input w-full"
-                          value={editItem.name}
-                          onChange={(e) => setEditItem({...editItem, name: e.target.value})}
-                          required
-                        />
-                        <input
-                          type="text"
-                          placeholder="IP"
-                          className="input w-full"
-                          value={editItem.ip}
-                          onChange={(e) => setEditItem({...editItem, ip: e.target.value})}
-                          required
-                        />
-                        <div className="flex gap-2 items-center">
-                          <label className="label cursor-pointer">
-                            <span className="label-text">Is VM?</span>
+                    <div className="space-y-4">
+                      {"ports" in editItem ? (
+                          <div className="space-y-2">
                             <input
-                              type="checkbox"
-                              className="checkbox"
-                              checked={!!editItem.host}
-                              onChange={(e) => {
-                                const isVmChecked = e.target.checked;
-                                if (isVmChecked) {
-                                  // Get available hosts excluding the current server
-                                  const availableHosts = hostServers.filter(s => s.id !== editItem.id);
-                                  const newHost = availableHosts.length > 0 ? availableHosts[0].id : null;
-                                  setEditItem({
-                                    ...editItem,
-                                    host: newHost
-                                  });
-                                } else {
-                                  setEditItem({
-                                    ...editItem,
-                                    host: null
-                                  });
-                                }
-                              }}
-                              
+                                type="text"
+                                placeholder="Name"
+                                className="input w-full"
+                                value={editItem.name}
+                                onChange={(e) => setEditItem({...editItem, name: e.target.value})}
+                                required
                             />
-                          </label>
-                          {editItem.host !== null && (
+                            <input
+                                type="text"
+                                placeholder="IP"
+                                className="input w-full"
+                                value={editItem.ip}
+                                onChange={(e) => setEditItem({...editItem, ip: e.target.value})}
+                                required
+                            />
+                            <div className="flex gap-2 items-center">
+                              <label className="label cursor-pointer">
+                                <span className="label-text">Is VM?</span>
+                                <input
+                                    type="checkbox"
+                                    className="checkbox"
+                                    checked={!!editItem.host}
+                                    onChange={(e) => {
+                                      const isVmChecked = e.target.checked;
+                                      if (isVmChecked) {
+                                        // Get available hosts excluding the current server
+                                        const availableHosts = hostServers.filter(s => s.id !== editItem.id);
+                                        const newHost = availableHosts.length > 0 ? availableHosts[0].id : null;
+                                        setEditItem({
+                                          ...editItem,
+                                          host: newHost
+                                        });
+                                      } else {
+                                        setEditItem({
+                                          ...editItem,
+                                          host: null
+                                        });
+                                      }
+                                    }}
+
+                                />
+                              </label>
+                              {editItem.host !== null && (
+                                  <select
+                                      className="select select-bordered w-full"
+                                      value={editItem.host}
+                                      onChange={(e) => setEditItem({
+                                        ...editItem,
+                                        host: Number(e.target.value)
+                                      })}
+                                      required
+                                  >
+                                    <option disabled value="">Select host</option>
+                                    {hostServers
+                                        .filter(server => server.id !== editItem.id) // Exclude current server
+                                        .map(server => (
+                                            <option key={server.id} value={server.id}>
+                                              {server.name}
+                                            </option>
+                                        ))}
+                                  </select>
+                              )}
+                            </div>
+                          </div>
+                      ) : (
+                          <div className="space-y-2">
                             <select
-                              className="select select-bordered w-full"
-                              value={editItem.host}
-                              onChange={(e) => setEditItem({
-                                ...editItem,
-                                host: Number(e.target.value)
-                              })}
-                              required
+                                className="select w-full"
+                                value={editItem.serverId}
+                                onChange={(e) => setEditItem({
+                                  ...editItem,
+                                  serverId: Number(e.target.value)
+                                })}
+                                required
                             >
-                              <option disabled value="">Select host</option>
-                              {hostServers
-                                .filter(server => server.id !== editItem.id) // Exclude current server
-                                .map(server => (
+                              {servers.map(server => (
                                   <option key={server.id} value={server.id}>
                                     {server.name}
                                   </option>
-                                ))}
+                              ))}
                             </select>
-                          )}
-                        </div>
+                            <input
+                                type="text"
+                                placeholder="Note"
+                                className="input w-full"
+                                value={editItem.note || ""}
+                                onChange={(e) => setEditItem({
+                                  ...editItem,
+                                  note: e.target.value
+                                })}
+                            />
+                            <input
+                                type="number"
+                                placeholder="Port"
+                                className="input w-full"
+                                value={editItem.port}
+                                onChange={(e) => setEditItem({
+                                  ...editItem,
+                                  port: Number(e.target.value)
+                                })}
+                                min="0"
+                                max="65535"
+                                required
+                            />
+                          </div>
+                      )}
+                      <div className="modal-action">
+                        <button className="btn" onClick={handleEdit}>Save</button>
+                        <button className="btn btn-ghost" onClick={() => {
+                          (document.getElementById('edit') as HTMLDialogElement)?.close();
+                          setEditItem(null);
+                        }}>
+                          Cancel
+                        </button>
                       </div>
-                    ) : (
-                      <div className="space-y-2">
-                        <select
-                          className="select w-full"
-                          value={editItem.serverId}
-                          onChange={(e) => setEditItem({
-                            ...editItem,
-                            serverId: Number(e.target.value)
-                          })}
-                          required
-                        >
-                          {servers.map(server => (
-                            <option key={server.id} value={server.id}>
-                              {server.name}
-                            </option>
-                          ))}
-                        </select>
-                        <input
-                          type="text"
-                          placeholder="Note"
-                          className="input w-full"
-                          value={editItem.note || ""}
-                          onChange={(e) => setEditItem({
-                            ...editItem,
-                            note: e.target.value
-                          })}
-                        />
-                        <input
-                          type="number"
-                          placeholder="Port"
-                          className="input w-full"
-                          value={editItem.port}
-                          onChange={(e) => setEditItem({
-                            ...editItem,
-                            port: Number(e.target.value)
-                          })}
-                          min="0"
-                          max="65535"
-                          required
-                        />
-                      </div>
-                    )}
-                    <div className="modal-action">
-                      <button className="btn" onClick={handleEdit}>Save</button>
-                      <button className="btn btn-ghost" onClick={() => {
-                        (document.getElementById('edit') as HTMLDialogElement)?.close();
-                        setEditItem(null);
-                      }}>
-                        Cancel
-                      </button>
                     </div>
-                  </div>
                 )}
               </div>
             </dialog>
