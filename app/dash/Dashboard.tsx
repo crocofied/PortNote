@@ -697,28 +697,35 @@ const generateRandomPort = () => {
                 </div>
                 <div className="text-sm opacity-75">{server.ip}</div>
                   {expanded.has(server.id) && (
-                      sortedPorts(server.ports).map(port => (
-                        <div key={port.id} className="ml-4 mt-2 flex items-center gap-2 hover:bg-base-300 rounded-lg">
-                          <div className="badge badge-neutral w-16">{port.port}</div>
-                          <span className="ml-2 text-sm flex-1">{port.note}</span>
-                          <button
-                            className="btn btn-xs btn-ghost"
-                            onClick={() => {
-                              setEditItem(port);
-                              (document.getElementById('edit') as HTMLDialogElement)?.showModal();
-                            }}
-                          >
-                            <Edit size={14} />
-                          </button>
-                          <button
-                            className="btn btn-xs btn-ghost text-error"
-                            onClick={() => handleDelete(2, port.id)}
-                          >
-                            <Trash size={14} />
-                          </button>
-                        </div>
-                      ))
-                    )}
+                    <div className="ml-4 mt-2 bg-base-100 rounded-xl p-3 shadow-sm">
+                      <div className="text-xs font-medium mb-2 text-base-content/70">PORTS</div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                        {sortedPorts(server.ports).map(port => (
+                          <div key={port.id} className="flex items-center gap-2 p-2 hover:bg-base-200 rounded-lg transition-colors border border-base-300">
+                            <div className="badge badge-neutral w-16 shrink-0">{port.port}</div>
+                            <span className="text-sm flex-1 truncate">{port.note}</span>
+                            <div className="flex gap-1">
+                              <button
+                                className="btn btn-xs btn-ghost"
+                                onClick={() => {
+                                  setEditItem(port);
+                                  (document.getElementById('edit') as HTMLDialogElement)?.showModal();
+                                }}
+                              >
+                                <Edit size={14} />
+                              </button>
+                              <button
+                                className="btn btn-xs btn-ghost text-error"
+                                onClick={() => handleDelete(2, port.id)}
+                              >
+                                <Trash size={14} />
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
 
                   {vmsByHost[server.id]?.map(vm => (
                       <div key={vm.id} className="ml-4 mt-4 border-l-2 pl-4">
@@ -758,27 +765,34 @@ const generateRandomPort = () => {
                     </div>
                     <div className="text-sm opacity-75">{vm.ip}</div>
                         {expanded.has(vm.id) && (
-                            sortedPorts(vm.ports).map(port => (
-                              <div key={port.id} className="ml-4 mt-2 flex items-center hover:bg-base-300 gap-2">
-                                <div className="badge badge-neutral w-16">{port.port}</div>
-                                <span className="ml-2 text-sm flex-1">{port.note}</span>
-                                <button
-                                  className="btn btn-xs btn-ghost"
-                                  onClick={() => {
-                                    setEditItem(port);
-                                    (document.getElementById('edit') as HTMLDialogElement)?.showModal();
-                                  }}
-                                >
-                                  <Edit size={14} />
-                                </button>
-                                <button
-                                  className="btn btn-xs btn-ghost text-error"
-                                  onClick={() => handleDelete(2, port.id)}
-                                >
-                                  <Trash size={14} />
-                                </button>
-                              </div>
-                          ))
+                          <div className="ml-4 mt-2 bg-base-100 rounded-xl p-3 shadow-sm">
+                            <div className="text-xs font-medium mb-2 text-base-content/70">PORTS</div>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                              {sortedPorts(vm.ports).map(port => (
+                                <div key={port.id} className="flex items-center gap-2 p-2 hover:bg-base-200 rounded-lg transition-colors border border-base-300">
+                                  <div className="badge badge-neutral w-16 shrink-0">{port.port}</div>
+                                  <span className="text-sm flex-1 truncate">{port.note}</span>
+                                  <div className="flex gap-1">
+                                    <button
+                                      className="btn btn-xs btn-ghost"
+                                      onClick={() => {
+                                        setEditItem(port);
+                                        (document.getElementById('edit') as HTMLDialogElement)?.showModal();
+                                      }}
+                                    >
+                                      <Edit size={14} />
+                                    </button>
+                                    <button
+                                      className="btn btn-xs btn-ghost text-error"
+                                      onClick={() => handleDelete(2, port.id)}
+                                    >
+                                      <Trash size={14} />
+                                    </button>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
                         )}
                   </div>
                 ))}
