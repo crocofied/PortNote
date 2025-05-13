@@ -62,26 +62,25 @@ export default function Home() {
         <h1 className="text-3xl font-bold">PortNote</h1>
       </div>
 
-      <div className="w-full max-w-md">
+      <div className="w-full max-w-md" aria-label="Login Form">
         <fieldset className="fieldset bg-base-200 border-base-300 rounded-box border p-8">
-          <legend className="fieldset-legend text-xl font-bold px-4">Login</legend>
+          <legend className="fieldset-legend text-xl font-bold px-4" aria-label="Login">Login</legend>
 
-          
           <div className="space-y-6">
             <div>
-              <label className="label font-medium">
+              <label className="label font-medium" aria-label="Username">
                 <span className="label-text text-base">Username</span>
               </label>
-              <input type="email" className="input input-bordered w-full" placeholder="Enter your username" onChange={(e) => setUsername(e.target.value)} />
+              <input type="email" className="input input-bordered w-full" placeholder="Enter your username" onChange={(e) => setUsername(e.target.value)} aria-label="Username"/>
             </div>
 
             <div>
-              <label className="label font-medium">
+              <label className="label font-medium" aria-label="Password">
                 <span className="label-text text-base">Password</span>
               </label>
-              <input type="password" className="input input-bordered w-full" placeholder="Enter your password" onChange={(e) => setPassword(e.target.value)}/>
+              <input type="password" className="input input-bordered w-full" placeholder="Enter your password" onChange={(e) => setPassword(e.target.value)} aria-label="Password"/>
             </div>
-            <button className="btn btn-neutral w-full" onClick={login}>Login</button>
+            <button className="btn btn-neutral w-full" onClick={login} aria-label="Login">Login</button>
           </div>
         </fieldset>
       </div>
