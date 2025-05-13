@@ -7,36 +7,8 @@ import axios from "axios";
 import Fuse from "fuse.js";
 import Footer from "@/components/Footer"
 import Cookies from "js-cookie";
-
-enum SortType {
-  Alphabet = 'alphabet',
-  IP = 'ip'
-}
-
-interface Server {
-  id: number;
-  name: string;
-  ip: string;
-  host: number | null;
-  ports: Port[];
-}
-
-interface Port {
-  id: number;
-  serverId: number;
-  note: string | null;
-  port: number;
-}
-
-const compareIp = (a: string, b: string) => {
-  const pa = a.split('.').map(n => parseInt(n, 10));
-  const pb = b.split('.').map(n => parseInt(n, 10));
-  for (let i = 0; i < 4; i++) {
-    const diff = (pa[i] || 0) - (pb[i] || 0);
-    if (diff !== 0) return diff;
-  }
-  return 0;
-};
+import { SortType, Server, Port } from "@/app/types";
+import { compareIp } from "@/app/utils";
 
 export default function Dashboard() {
   const [servers, setServers] = useState<Server[]>([]);
