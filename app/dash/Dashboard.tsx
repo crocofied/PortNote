@@ -287,9 +287,9 @@ const generateRandomPort = () => {
         onClose={() => setShowError(false)}
       />
 {isScanning && (
-        <dialog className="modal modal-open">
+        <dialog className="modal modal-open" aria-labelledby="modal-title">
           <div className="modal-box">
-            <div className="flex flex-col items-center justify-center gap-4">
+            <div className="flex flex-col items-center justify-center gap-4" id="modal-title">
               {!showRefreshMessage ? (
                 <>
                   <span className="loading loading-spinner text-primary loading-lg"></span>
@@ -309,6 +309,7 @@ const generateRandomPort = () => {
                       setShowRefreshMessage(false);
                       fetchData();
                     }}
+                    aria-label="Refresh data after scan"
                   >
                     Refresh Data
                   </button>
@@ -318,6 +319,7 @@ const generateRandomPort = () => {
                       setIsScanning(false);
                       setShowRefreshMessage(false);
                     }}
+                    aria-label="Close scan dialog"
                   >
                     Close
                   </button>
@@ -329,6 +331,7 @@ const generateRandomPort = () => {
                     setIsScanning(false);
                     setShowRefreshMessage(false);
                   }}
+                  aria-label="Close scan dialog"
                 >
                   Close
                 </button>
@@ -338,12 +341,13 @@ const generateRandomPort = () => {
         </dialog>
       )}
       <div className="grid grid-cols-12 pt-12">
-        <div className="col-start-3 col-end-11">
+        <div className="col-start-3 col-end-11" role="main" aria-label="Server and port management">
           <div className="w-full flex gap-2">
             <select
                 value={sortType}
                 onChange={e => setSortType(e.target.value as SortType)}
                 className="select select-bordered w-48"
+                aria-label="Sort servers by"
             >
               <option value={SortType.Alphabet}>Sort: Alphabetical</option>
               <option value={SortType.IP}>Sort: IP Address</option>
@@ -367,21 +371,23 @@ const generateRandomPort = () => {
                   className="input input-lg outline-none focus:outline-none focus:ring-0 border-0 focus:border-0"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
+                  aria-label="Search servers and ports"
               />
             </label>
 
-            <button
+            <button 
                 className="btn btn-square"
                 onClick={generateRandomPort}
                 title="Generate random port"
+                aria-label="Generate random port"
             >
               <Dice5/>
             </button>
             {showRandomModal && randomPort !== null && (
-                <dialog open className="modal">
-                  <div className="modal-box max-w-xs space-y-4">
+                <dialog open className="modal" aria-label="Random port generated">
+                  <div className="modal-box max-w-xs space-y-4" role="dialog" aria-labelledby="random-port-title">
                     <div className="text-center">
-                      <h3 className="font-bold text-xl mb-1">Random Port Generator</h3>
+                      <h3 className="font-bold text-xl mb-1" id="random-port-title">Random Port Generator</h3>
                       <p className="text-sm opacity-75">Your allocated port number</p>
                     </div>
 
@@ -396,6 +402,7 @@ const generateRandomPort = () => {
                           className="btn btn-block gap-2"
                           onClick={copyToClipboard}
                           title="Copy port"
+                          aria-label="Copy port number to clipboard"
                       >
                         <Copy size={18} className="mr-1"/>
                         Copy Port
@@ -405,6 +412,7 @@ const generateRandomPort = () => {
                           className="btn btn-ghost btn-sm btn-circle absolute top-2 right-2"
                           onClick={() => setShowRandomModal(false)}
                           title="Close"
+                          aria-label="Close random port dialog"
                       >
                         ✕
                       </button>
@@ -413,15 +421,18 @@ const generateRandomPort = () => {
                 </dialog>
             )}
 
-            <button className="btn btn-square"
-                    onClick={() => (document.getElementById('add') as HTMLDialogElement)?.showModal()}>
+            <button 
+                className="btn btn-square"
+                onClick={() => (document.getElementById('add') as HTMLDialogElement)?.showModal()}
+                aria-label="Add new server or port"
+            >
               <Plus/>
             </button>
 
             {/* Add Dialog */}
             <dialog id="add" className="modal">
               <div className="modal-box">
-                <h3 className="font-bold text-lg pb-2">Create...</h3>
+                <h3 className="font-bold text-lg pb-2" id="add-dialog-title">Add...</h3>
                 <div className="tabs tabs-box">
                   <input
                       type="radio"
@@ -518,9 +529,10 @@ const generateRandomPort = () => {
                   </div>
                 </div>
                 <div className="modal-action mt-auto pt-2">
-                  <button className="btn" onClick={handleSubmit}>Add</button>
+                  <button className="btn" onClick={handleSubmit} aria-label="Add new item">Add</button>
                   <button className="btn btn-ghost"
-                          onClick={() => (document.getElementById('add') as HTMLDialogElement)?.close()}>
+                          onClick={() => (document.getElementById('add') as HTMLDialogElement)?.close()}
+                          aria-label="Cancel adding new item">
                     Cancel
                   </button>
                 </div>
@@ -530,7 +542,7 @@ const generateRandomPort = () => {
             {/* Edit Dialog */}
             <dialog id="edit" className="modal">
               <div className="modal-box">
-                <h3 className="font-bold text-lg pb-2">{editItem && "ports" in editItem ? "Edit Server" : "Edit Port"}</h3>
+                <h3 className="font-bold text-lg pb-2" id="edit-dialog-title">{editItem && "ports" in editItem ? "Edit Server" : "Edit Port"}</h3>
                 {editItem && (
                     <div className="space-y-4">
                       {"ports" in editItem ? (
@@ -643,11 +655,12 @@ const generateRandomPort = () => {
                           </div>
                       )}
                       <div className="modal-action">
-                        <button className="btn" onClick={handleEdit}>Save</button>
+                        <button className="btn" onClick={handleEdit} aria-label="Save edited item">Save</button>
                         <button className="btn btn-ghost" onClick={() => {
                           (document.getElementById('edit') as HTMLDialogElement)?.close();
                           setEditItem(null);
-                        }}>
+                        }}
+                        aria-label="Cancel editing item">
                           Cancel
                         </button>
                       </div>
@@ -658,13 +671,15 @@ const generateRandomPort = () => {
           </div>
 
           {/* Server List */}
-          <div className="mt-8 space-y-4">
+          <div className="mt-8 space-y-4" role="list" aria-label="Server list">
             {hostServers.map(server => (
-                <div key={server.id} className="bg-base-200 p-4 rounded-lg">
+                <div key={server.id} className="bg-base-200 p-4 rounded-lg" role="listitem" aria-label={`Server ${server.name}`}>
                   <div className="flex items-center gap-2">
                     <button
                         className="btn btn-ghost btn-xs p-1"
                         onClick={() => toggleExpanded(server.id)}
+                        aria-label={expanded.has(server.id) ? `Collapse server ${server.name}` : `Expand server ${server.name}`}
+                        aria-expanded={expanded.has(server.id)}
                     >
                       <ChevronDown className={`h-4 w-4 transition-transform ${
                           expanded.has(server.id) ? 'rotate-180' : ''
@@ -675,6 +690,7 @@ const generateRandomPort = () => {
                     <button
                       className="btn btn-xs btn-ghost text-primary"
                       onClick={() => handleScan(server.id)}
+                      aria-label={`Scan ports for server ${server.name}`}
                     >
                       <ScanSearch size={14} />
                     </button>
@@ -685,23 +701,25 @@ const generateRandomPort = () => {
                       setEditItem(server);
                       (document.getElementById('edit') as HTMLDialogElement)?.showModal();
                     }}
+                    aria-label={`Edit server ${server.name}`}
                   >
                     <Edit size={14} />
                   </button>
                   <button
                     className="btn btn-xs btn-ghost text-error"
                     onClick={() => handleDelete(0, server.id)}
+                    aria-label={`Delete server ${server.name}`}
                   >
                     <Trash size={14} />
                   </button>
                 </div>
                 <div className="text-sm opacity-75">{server.ip}</div>
                   {expanded.has(server.id) && (
-                    <div className="ml-4 mt-2 bg-base-100 rounded-xl p-3 shadow-sm">
+                    <div className="ml-4 mt-2 bg-base-100 rounded-xl p-3 shadow-sm" role="region" aria-label={`Ports for server ${server.name}`}>
                       <div className="text-xs font-medium mb-2 text-base-content/70">PORTS</div>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                         {sortedPorts(server.ports).map(port => (
-                          <div key={port.id} className="flex items-center gap-2 p-2 hover:bg-base-200 rounded-lg transition-colors border border-base-300">
+                          <div key={port.id} className="flex items-center gap-2 p-2 hover:bg-base-200 rounded-lg transition-colors border border-base-300" role="listitem" aria-label={`Port ${port.port}${port.note ? `, ${port.note}` : ''}`}>
                             <div className="badge badge-neutral w-16 shrink-0">{port.port}</div>
                             <span className="text-sm flex-1 truncate">{port.note}</span>
                             <div className="flex gap-1">
@@ -711,12 +729,14 @@ const generateRandomPort = () => {
                                   setEditItem(port);
                                   (document.getElementById('edit') as HTMLDialogElement)?.showModal();
                                 }}
+                                aria-label={`Edit port ${port.port}`}
                               >
                                 <Edit size={14} />
                               </button>
                               <button
                                 className="btn btn-xs btn-ghost text-error"
                                 onClick={() => handleDelete(2, port.id)}
+                                aria-label={`Delete port ${port.port}`}
                               >
                                 <Trash size={14} />
                               </button>
@@ -728,11 +748,13 @@ const generateRandomPort = () => {
                   )}
 
                   {vmsByHost[server.id]?.map(vm => (
-                      <div key={vm.id} className="ml-4 mt-4 border-l-2 pl-4">
+                      <div key={vm.id} className="ml-4 mt-4 border-l-2 pl-4" role="listitem" aria-label={`Virtual machine ${vm.name}`}>
                         <div className="flex items-center gap-2">
                           <button
                               className="btn btn-ghost btn-xs p-1"
                               onClick={() => toggleExpanded(vm.id)}
+                              aria-label={expanded.has(vm.id) ? `Collapse VM ${vm.name}` : `Expand VM ${vm.name}`}
+                              aria-expanded={expanded.has(vm.id)}
                           >
                             <ChevronDown className={`h-4 w-4 transition-transform ${
                                 expanded.has(vm.id) ? 'rotate-180' : ''
@@ -742,6 +764,7 @@ const generateRandomPort = () => {
                       <button
                     className="btn btn-xs btn-ghost text-primary"
                     onClick={() => handleScan(vm.id)}
+                    aria-label={`Scan ports for VM ${vm.name}`}
                   >
                     <ScanSearch size={14} />
                   </button>
@@ -752,12 +775,14 @@ const generateRandomPort = () => {
                             setEditItem(vm);
                             (document.getElementById('edit') as HTMLDialogElement)?.showModal();
                           }}
+                          aria-label={`Edit VM ${vm.name}`}
                         >
                           <Edit size={14} />
                         </button>
                         <button
                           className="btn btn-xs btn-ghost text-error"
                           onClick={() => handleDelete(1, vm.id)}
+                          aria-label={`Delete VM ${vm.name}`}
                         >
                           <Trash size={14} />
                         </button>
@@ -765,11 +790,11 @@ const generateRandomPort = () => {
                     </div>
                     <div className="text-sm opacity-75">{vm.ip}</div>
                         {expanded.has(vm.id) && (
-                          <div className="ml-4 mt-2 bg-base-100 rounded-xl p-3 shadow-sm">
+                          <div className="ml-4 mt-2 bg-base-100 rounded-xl p-3 shadow-sm" role="region" aria-label={`Ports for VM ${vm.name}`}>
                             <div className="text-xs font-medium mb-2 text-base-content/70">PORTS</div>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-2" role="list" aria-label={`Port list for ${vm.name}`}>
                               {sortedPorts(vm.ports).map(port => (
-                                <div key={port.id} className="flex items-center gap-2 p-2 hover:bg-base-200 rounded-lg transition-colors border border-base-300">
+                                <div key={port.id} className="flex items-center gap-2 p-2 hover:bg-base-200 rounded-lg transition-colors border border-base-300" role="listitem" aria-label={`Port ${port.port}${port.note ? `, ${port.note}` : ''}`}>
                                   <div className="badge badge-neutral w-16 shrink-0">{port.port}</div>
                                   <span className="text-sm flex-1 truncate">{port.note}</span>
                                   <div className="flex gap-1">
@@ -779,12 +804,14 @@ const generateRandomPort = () => {
                                         setEditItem(port);
                                         (document.getElementById('edit') as HTMLDialogElement)?.showModal();
                                       }}
+                                      aria-label={`Edit port ${port.port}`}
                                     >
                                       <Edit size={14} />
                                     </button>
                                     <button
                                       className="btn btn-xs btn-ghost text-error"
                                       onClick={() => handleDelete(2, port.id)}
+                                      aria-label={`Delete port ${port.port}`}
                                     >
                                       <Trash size={14} />
                                     </button>
