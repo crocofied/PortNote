@@ -720,7 +720,7 @@ const generateRandomPort = () => {
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                         {sortedPorts(server.ports).map(port => (
                           <div key={port.id} className="flex items-center gap-2 p-2 hover:bg-base-200 rounded-lg transition-colors border border-base-300" role="listitem" aria-label={`Port ${port.port}${port.note ? `, ${port.note}` : ''}`}>
-                            <div className="badge badge-neutral w-16 shrink-0">{port.port}</div>
+                            <div className="badge badge-neutral w-16 shrink-0 hover:bg-primary hover:text-primary-content cursor-pointer" onClick={() => {window.open(`http://${server.ip}:${port.port}`, '_blank')}} aria-label={`Open port ${port.port}`} >{port.port}</div>
                             <span className="text-sm flex-1 truncate">{port.note}</span>
                             <div className="flex gap-1">
                               <button
@@ -795,7 +795,7 @@ const generateRandomPort = () => {
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-2" role="list" aria-label={`Port list for ${vm.name}`}>
                               {sortedPorts(vm.ports).map(port => (
                                 <div key={port.id} className="flex items-center gap-2 p-2 hover:bg-base-200 rounded-lg transition-colors border border-base-300" role="listitem" aria-label={`Port ${port.port}${port.note ? `, ${port.note}` : ''}`}>
-                                  <div className="badge badge-neutral w-16 shrink-0">{port.port}</div>
+                                  <div className="badge badge-neutral w-16 shrink-0 hover:bg-primary hover:text-primary-content cursor-pointer" onClick={() => {window.open(`http://${vm.ip}:${port.port}`, '_blank')}} aria-label={`Open port ${port.port}`}>{port.port}</div>
                                   <span className="text-sm flex-1 truncate">{port.note}</span>
                                   <div className="flex gap-1">
                                     <button
