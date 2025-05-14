@@ -1,7 +1,7 @@
 "use client";
 import Navbar from "@/components/Navbar";
 import ErrorToast from "@/components/Error";
-import { Edit, Plus, Trash, Dice5, Copy, ScanSearch, ChevronDown} from "lucide-react";
+import { Edit, Plus, Trash, Dice5, Copy, ScanSearch, ChevronRight} from "lucide-react";
 import { useEffect, useState, useMemo } from "react";
 import axios from "axios";
 import Fuse from "fuse.js";
@@ -681,8 +681,8 @@ const generateRandomPort = () => {
                         aria-label={expanded.has(server.id) ? `Collapse server ${server.name}` : `Expand server ${server.name}`}
                         aria-expanded={expanded.has(server.id)}
                     >
-                      <ChevronDown className={`h-4 w-4 transition-transform ${
-                          expanded.has(server.id) ? '' : 'rotate-180'
+                      <ChevronRight className={`h-4 w-4 transition-transform ${
+                          expanded.has(server.id) ? 'rotate-90' : ''
                       }`} />
                     </button>
                   <div className="flex items-center gap-2 flex-1">
@@ -756,8 +756,8 @@ const generateRandomPort = () => {
                               aria-label={expanded.has(vm.id) ? `Collapse VM ${vm.name}` : `Expand VM ${vm.name}`}
                               aria-expanded={expanded.has(vm.id)}
                           >
-                            <ChevronDown className={`h-4 w-4 transition-transform ${
-                                expanded.has(vm.id) ? '' : 'rotate-180'
+                            <ChevronRight className={`h-4 w-4 transition-transform ${
+                                expanded.has(vm.id) ? 'rotate-90' : ''
                             }`} />
                           </button>
                       <div className="font-medium">🖥️ {vm.name}</div>
