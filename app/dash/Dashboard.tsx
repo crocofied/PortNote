@@ -682,7 +682,7 @@ const generateRandomPort = () => {
                         aria-expanded={expanded.has(server.id)}
                     >
                       <ChevronDown className={`h-4 w-4 transition-transform ${
-                          expanded.has(server.id) ? 'rotate-180' : ''
+                          expanded.has(server.id) ? '' : 'rotate-180'
                       }`} />
                     </button>
                   <div className="flex items-center gap-2 flex-1">
@@ -757,7 +757,7 @@ const generateRandomPort = () => {
                               aria-expanded={expanded.has(vm.id)}
                           >
                             <ChevronDown className={`h-4 w-4 transition-transform ${
-                                expanded.has(vm.id) ? 'rotate-180' : ''
+                                expanded.has(vm.id) ? '' : 'rotate-180'
                             }`} />
                           </button>
                       <div className="font-medium">🖥️ {vm.name}</div>
