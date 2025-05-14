@@ -5,7 +5,7 @@ export default function Footer() {
       <div className="mt-auto pt-4">
         <footer className="footer sm:footer-horizontal footer-center bg-base-200 text-base-content p-4">
           <aside>
-            <p>PortNote v{packageJson.version} | Copyright © {new Date().getFullYear()} - All right reserved by PortNote</p>
+            <p><a href="https://github.com/crocofied/PortNote" target="_blank" rel="noopener noreferrer" >PortNote v{packageJson.version} | Copyright © {new Date().getFullYear()} - All right reserved by PortNote</a></p>
           </aside>
         </footer>
       </div>

@@ -9,11 +9,17 @@ services:
       LOGIN_USERNAME: username # Replace with a username
       LOGIN_PASSWORD: mypassword # Replace with a custom password
       DATABASE_URL: "postgresql://postgres:postgres@db:5432/postgres"
-  
+    depends_on:
+      db:
+        condition: service_started
+
   agent:
     image: haedlessdev/portnote-agent:latest
     environment:
       DATABASE_URL: "postgresql://postgres:postgres@db:5432/postgres"
+    depends_on:
+      db:
+        condition: service_started
 
   db:
     image: postgres:17

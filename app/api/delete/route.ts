@@ -27,6 +27,11 @@ export async function DELETE(request: NextRequest) {
         });
       }
 
+      // Delete ports belonging directly to the host server itself
+      await prisma.port.deleteMany({
+        where: { serverId: id }
+      });
+
       // Delete all VM records
       await prisma.server.deleteMany({ where: { host: id } });
 
