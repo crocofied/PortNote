@@ -1,12 +1,13 @@
 "use client";
 import Navbar from "@/components/Navbar";
 import ErrorToast from "@/components/Error";
-import { Edit, Plus, Trash, Dice5, Copy, ScanSearch, ChevronRight} from "lucide-react";
+import { Edit, Plus, Trash, Dice5, ScanSearch, ChevronRight} from "lucide-react";
 import { useEffect, useState, useMemo } from "react";
 import axios from "axios";
 import Fuse from "fuse.js";
 import Footer from "@/components/Footer"
 import Cookies from "js-cookie";
+import RandomModal from "./components/RandomModal";
 import { SortType, Server, Port } from "@/app/types";
 import { compareIp } from "@/app/utils";
 
@@ -41,7 +42,7 @@ export default function Dashboard() {
   const [portPort, setPortPort] = useState<number | null>(null);
   const [editItem, setEditItem] = useState<Server | Port | null>(null);
 
-  const [randomPort, setRandomPort] = useState<number | null>(null);
+
   const [showRandomModal, setShowRandomModal] = useState(false);
 
   const [isScanning, setIsScanning] = useState(false);
@@ -251,29 +252,6 @@ const usedPorts = useMemo(() => {
   return ports;
 }, [servers]);
 
-const generateRandomPort = () => {
-  let port;
-  let attempts = 0;
-  
-  do {
-    port = Math.floor(Math.random() * (65535 - 1024) + 1024);
-    attempts++;
-  } while (usedPorts.has(port) && attempts < 1000);
-
-  if (attempts >= 1000) {
-    handleError("Could not find free port after 1000 attempts");
-    return;
-  }
-
-  setRandomPort(port);
-  setShowRandomModal(true);
-};
-
-  const copyToClipboard = () => {
-    if (randomPort !== null) {
-     navigator.clipboard.writeText(randomPort.toString());
-    }
-};
 
   const sortedPorts = (ports: Port[]) => 
     [...ports].sort((a, b) => a.port - b.port);
@@ -377,48 +355,18 @@ const generateRandomPort = () => {
 
             <button 
                 className="btn btn-square"
-                onClick={generateRandomPort}
+                onClick={() => setShowRandomModal(true)}
                 title="Generate random port"
                 aria-label="Generate random port"
             >
               <Dice5/>
             </button>
-            {showRandomModal && randomPort !== null && (
-                <dialog open className="modal" aria-label="Random port generated">
-                  <div className="modal-box max-w-xs space-y-4" role="dialog" aria-labelledby="random-port-title">
-                    <div className="text-center">
-                      <h3 className="font-bold text-xl mb-1" id="random-port-title">Random Port Generator</h3>
-                      <p className="text-sm opacity-75">Your allocated port number</p>
-                    </div>
-
-                    <div className="bg-base-200 rounded-box p-4 w-full text-center shadow-inner">
-                        <span className="text-4xl font-mono font-bold tracking-wider">
-                        {randomPort}
-                        </span>
-                    </div>
-
-                    <div className="flex flex-col w-full gap-2">
-                      <button
-                          className="btn btn-block gap-2"
-                          onClick={copyToClipboard}
-                          title="Copy port"
-                          aria-label="Copy port number to clipboard"
-                      >
-                        <Copy size={18} className="mr-1"/>
-                        Copy Port
-                      </button>
-
-                      <button
-                          className="btn btn-ghost btn-sm btn-circle absolute top-2 right-2"
-                          onClick={() => setShowRandomModal(false)}
-                          title="Close"
-                          aria-label="Close random port dialog"
-                      >
-                        ✕
-                      </button>
-                    </div>
-                  </div>
-                </dialog>
+            {showRandomModal && (
+                <RandomModal
+                  setShowRandomModal={setShowRandomModal}
+                  globalErrorHandler={handleError}
+                  usedPorts={usedPorts}
+                />
             )}
 
             <button 
