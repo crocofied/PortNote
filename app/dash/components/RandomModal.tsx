@@ -4,7 +4,7 @@ import {
   generateRandomPortWithServerContext,
   generateRandomPortWithUsedPortsContext,
 } from "@/app/utils";
-import { Copy } from "lucide-react";
+import { Copy, RefreshCcw } from "lucide-react";
 import { useEffect, useState } from "react";
 
 type RandomModalProps = {
@@ -53,6 +53,19 @@ const RandomModal = (props: RandomModalProps) => {
         generationRetryAttempts
       )
     );
+  };
+
+  const handleRegeneratePort = () => {
+    if (selectedServerId) {
+      handleServerContextChange(selectedServerId);
+    } else {
+      setRandomPort(
+        generateRandomPortWithUsedPortsContext(
+          usedPorts,
+          generationRetryAttempts
+        )
+      );
+    }
   };
 
   useEffect(() => {
@@ -109,6 +122,15 @@ const RandomModal = (props: RandomModalProps) => {
           </div>
 
           <div className="flex flex-col w-full gap-2">
+            <button
+              className="btn btn-block gap-2"
+              onClick={handleRegeneratePort}
+              title="Regenerate"
+              aria-label="Regenerate Port"
+            >
+              <RefreshCcw size={18} className="mr-1" />
+              Regenerate Port
+            </button>
             <button
               className="btn btn-block gap-2"
               onClick={() => copyPortToClipboard(randomPort)}
