@@ -365,6 +365,7 @@ const usedPorts = useMemo(() => {
                 <RandomModal
                   setShowRandomModal={setShowRandomModal}
                   globalErrorHandler={handleError}
+                  availableServers={servers}
                   usedPorts={usedPorts}
                 />
             )}
