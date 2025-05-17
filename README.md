@@ -25,7 +25,35 @@ Random Port Generator
 
 ## Deployment
 
-Simply run this compose.yml:
+PortNote uses docker compose for deployment. It is crucial
+to set up some secrets for the environment to make your
+deployment work. One could do that by creating a `.env`
+file with following content:
+
+```dotenv
+JWT_SECRET=# Replace with a secure random string
+USER_SECRET=# Replace with a secure random string
+LOGIN_USERNAME=# Replace with a username
+LOGIN_PASSWORD=# Replace with a custom password
+```
+
+To quickly generate such file, one can execute a following
+command:
+
+> Note: it will overwrite the .env file if it already exists
+
+```sh
+echo """
+JWT_SECRET=$(openssl rand -base64 32)
+USER_SECRET=$(openssl rand -base64 32)
+LOGIN_USERNAME=some_user
+LOGIN_PASSWORD=some_password
+""" > .en
+```
+
+Adjust the values to your needs and then run the following
+[compose.yaml](compose.yml):
+
 ```yml
 services:
   web:
@@ -33,11 +61,9 @@ services:
     ports:
       - "3000:3000"
     environment:
-      JWT_SECRET: RANDOM_SECRET # Replace with a secure random string
-      USER_SECRET: RANDOM_SECRET # Replace with a secure random string
-      LOGIN_USERNAME: username # Replace with a username
-      LOGIN_PASSWORD: mypassword # Replace with a custom password
-      DATABASE_URL: "postgresql://postgres:postgres@db:5432/postgres"
+      - DATABASE_URL: "postgresql://postgres:postgres@172.20.0.2:5432/postgres"
+    env_file:
+      - .env 
     depends_on:
       db:
         condition: service_started
@@ -45,7 +71,7 @@ services:
   agent:
     image: haedlessdev/portnote-agent:latest
     environment:
-      DATABASE_URL: "postgresql://postgres:postgres@db:5432/postgres"
+      - DATABASE_URL: "postgresql://postgres:postgres@db:5432/postgres"
     depends_on:
       db:
         condition: service_started
@@ -62,6 +88,12 @@ services:
 
 volumes:
   postgres_data:
+```
+
+Deploy with a command:
+
+```sh
+docker-compose -f compose.yml --env-file .env up -d
 ```
 
 ## Tech Stack & Credits
