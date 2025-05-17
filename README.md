@@ -30,6 +30,7 @@ Simply run this compose.yml:
 services:
   web:
     image: haedlessdev/portnote:latest
+    restart: unless-stopped
     ports:
       - "3000:3000"
     environment:
@@ -40,15 +41,16 @@ services:
       DATABASE_URL: "postgresql://postgres:postgres@db:5432/postgres"
     depends_on:
       db:
-        condition: service_started
+        condition: service_healthy
 
   agent:
     image: haedlessdev/portnote-agent:latest
+    restart: unless-stopped
     environment:
       DATABASE_URL: "postgresql://postgres:postgres@db:5432/postgres"
     depends_on:
       db:
-        condition: service_started
+        condition: service_healthy
 
   db:
     image: postgres:17
@@ -59,6 +61,11 @@ services:
       POSTGRES_DB: postgres
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready", "-U", "postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
 volumes:
   postgres_data:
