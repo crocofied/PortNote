@@ -60,10 +60,9 @@ services:
     image: haedlessdev/portnote:latest
     ports:
       - "3000:3000"
+    env_file: .env
     environment:
-      - DATABASE_URL: "postgresql://postgres:postgres@172.20.0.2:5432/postgres"
-    env_file:
-      - .env 
+      DATABASE_URL: "postgresql://postgres:postgres@172.20.0.2:5432/postgres"
     depends_on:
       db:
         condition: service_started
@@ -71,7 +70,7 @@ services:
   agent:
     image: haedlessdev/portnote-agent:latest
     environment:
-      - DATABASE_URL: "postgresql://postgres:postgres@db:5432/postgres"
+      DATABASE_URL: "postgresql://postgres:postgres@172.20.0.2:5432/postgres"
     depends_on:
       db:
         condition: service_started
@@ -93,7 +92,7 @@ volumes:
 Deploy with a command:
 
 ```sh
-docker-compose -f compose.yml --env-file .env up -d
+docker compose -f compose.yml -d
 ```
 
 ## Tech Stack & Credits
