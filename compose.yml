@@ -3,12 +3,9 @@ services:
     image: haedlessdev/portnote:latest
     ports:
       - "3000:3000"
+    env_file: .env
     environment:
-      JWT_SECRET: RANDOM_SECRET # Replace with a secure random string
-      USER_SECRET: RANDOM_SECRET # Replace with a secure random string
-      LOGIN_USERNAME: username # Replace with a username
-      LOGIN_PASSWORD: mypassword # Replace with a custom password
-      DATABASE_URL: "postgresql://postgres:postgres@db:5432/postgres"
+      DATABASE_URL: "postgresql://postgres:postgres@172.20.0.2:5432/postgres"
     depends_on:
       db:
         condition: service_started
@@ -16,7 +13,7 @@ services:
   agent:
     image: haedlessdev/portnote-agent:latest
     environment:
-      DATABASE_URL: "postgresql://postgres:postgres@db:5432/postgres"
+      DATABASE_URL: "postgresql://postgres:postgres@172.20.0.2:5432/postgres"
     depends_on:
       db:
         condition: service_started
